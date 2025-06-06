@@ -34,4 +34,3 @@ docker build --no-cache -t dns-stress:$TAG
 - create configmap with fqdn list and mount it to container as file
 - set env which described above
 - destroy your DNS :)
-

@@ -77,7 +77,7 @@ func TestCalculateTime_AllSuccess(t *testing.T) {
 	if got == "No successful requests" {
 		t.Error("Expected results, got no successful requests")
 	}
-	// Not asserting exact text — only presence of key stats
+
 	if !contains(got, "Fastest response time") {
 		t.Errorf("Expected proper output, got %s", got)
 	}
