@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"time"
 )
 
 type Config struct {
@@ -62,6 +63,9 @@ func main() {
 
 	slog.Info("Test end's. Restart container to repeat. Untill that i'll sleep")
 
-	select {}
+	
+	for {
+		time.Sleep(time.Hour * 24)
+	}
 
 }
