@@ -54,7 +54,7 @@ func main() {
 
 	slog.Info("Starting stress tests...")
 
-	for _, count := range []int{10, 100, 100} {
+	for _, count := range []int{10, 100, 1000, 10000} {
 		_, err := io.WriteString(os.Stdout, stressTest(count, config.delay, config.dnsServer, dns_list))
 		if err != nil {
 			slog.Error("Cannot write answer", "Error:", err.Error())
@@ -63,7 +63,7 @@ func main() {
 
 	slog.Info("Test end's. Restart container to repeat. Untill that i'll sleep")
 
-	
+
 	for {
 		time.Sleep(time.Hour * 24)
 	}
