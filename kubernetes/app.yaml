@@ -1,0 +1,63 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dns-stress-config
+  namespace: default
+data:
+  fqdn_list.txt: |
+    example.com
+    example.org
+  DNS_SERVER: 100.96.0.10
+  FQDN_LIST_PATH: /app/config/fqdn_list.txt
+  DELAY: "2"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns-stress-test-app
+  namespace: default
+  labels:
+    app: dns-stress-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dns-stress-test
+  template:
+    metadata:
+      labels:
+        app: dns-stress-test
+    spec:
+      containers:
+        - name: dns-stress-test
+          image: kunaev/dns-stress:0.0.1
+          resources:
+            limits:
+              cpu: 100m
+              memory: 200Mi
+            requests:
+              cpu: 10m
+              memory: 50Mi
+          volumeMounts:
+            - name: fqdn-list
+              mountPath: /app/config/
+          envFrom:
+            - configMapRef:
+                name: dns-stress-config
+      volumes:
+        - name: fqdn-list
+          configMap:
+            name: dns-stress-config
+            items:
+              - key: fqdn_list.txt
+                path: fqdn_list.txt
+#      nodeSelector:
+#        awesome-node: 'true'
+#      tolerations:
+#        - key: awesome-node
+#          operator: Equal
+#          value: 'true'
+#          effect: NoSchedule
+#
