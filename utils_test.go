@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -9,8 +10,18 @@ import (
 func TestGetEnv(t *testing.T) {
 	key := "TEST_ENV"
 	expected := "value"
-	os.Setenv(key, expected)
-	defer os.Unsetenv(key)
+	err := os.Setenv(key, expected)
+
+	if err != nil {
+		fmt.Printf("Error with set env: %v", err)
+	}
+
+	defer func() {
+		err := os.Unsetenv(key)
+		if err != nil {
+			fmt.Printf("Error with set env: %v", err)
+		}
+	}()
 
 	if val := getEnv(key, "default"); val != expected {
 		t.Errorf("Expected %s, got %s", expected, val)
@@ -22,8 +33,17 @@ func TestGetEnv(t *testing.T) {
 }
 
 func TestGetEnvAsInt(t *testing.T) {
-	os.Setenv("INT_ENV", "42")
-	defer os.Unsetenv("INT_ENV")
+	err := os.Setenv("INT_ENV", "42")
+	if err != nil {
+		fmt.Printf("Error with set env: %v", err)
+	}
+
+	defer func() {
+		err := os.Unsetenv("INT_ENV")
+		if err != nil {
+			fmt.Printf("Error with set env: %v", err)
+		}
+	}()
 
 	val := getEnvAsInt("INT_ENV", 10)
 	if val != 42 {
@@ -35,7 +55,11 @@ func TestGetEnvAsInt(t *testing.T) {
 		t.Errorf("Expected 99, got %d", val)
 	}
 
-	os.Setenv("INVALID_INT", "abc")
+	err = os.Setenv("INVALID_INT", "abc")
+	if err != nil {
+		fmt.Printf("Error with set env: %v", err)
+	}
+
 	val = getEnvAsInt("INVALID_INT", 55)
 	if val != 55 {
 		t.Errorf("Expected 55 fallback, got %d", val)
@@ -67,7 +91,7 @@ func TestCalculateTime_WithFailures(t *testing.T) {
 	close(c)
 
 	got := calculateTime(c)
-	if contains(got, "Average response time: 0s") {
+	if !contains(got, "Average response time: 15ms") {
 		t.Errorf("Expected real average, got: %s", got)
 	}
 }
