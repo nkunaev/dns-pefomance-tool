@@ -1,4 +1,4 @@
-module github.com/nkunaev/dns-pefomance-tool
+module github.com/nkunaev/dns-stress-tool
 
 go 1.24.2
 

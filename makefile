@@ -5,11 +5,6 @@ APP_EXECUTABLE="./out/$(APP)"
 ALL_PACKAGES=$(shell go list ./...)
 SHELL := /bin/sh # Use bash syntax
 
-# Optional if you need DB and migration commands
-# DB_HOST=$(shell cat config/application.yml | grep -m 1 -i HOST | cut -d ":" -f2)
-# DB_NAME=$(shell cat config/application.yml | grep -w -i NAME  | cut -d ":" -f2)
-# DB_USER=$(shell cat config/application.yml | grep -i USERNAME | cut -d ":" -f2)
-
 # Optional colors to beautify output
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)

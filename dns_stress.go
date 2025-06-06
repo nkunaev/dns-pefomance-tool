@@ -63,7 +63,6 @@ func main() {
 
 	slog.Info("Test end's. Restart container to repeat. Untill that i'll sleep")
 
-
 	for {
 		time.Sleep(time.Hour * 24)
 	}

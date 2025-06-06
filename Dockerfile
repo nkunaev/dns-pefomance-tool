@@ -1,7 +1,7 @@
 FROM golang:alpine AS build
 WORKDIR /build
 COPY . .
-RUN apk add --no-cache make curl && make build
+RUN apk add --no-cache make && make build
 
 FROM alpine:3
 LABEL author="nkunaev"
