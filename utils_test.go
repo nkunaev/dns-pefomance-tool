@@ -45,13 +45,13 @@ func TestGetEnvAsInt(t *testing.T) {
 		}
 	}()
 
-	val := getEnvAsInt("INT_ENV", 10)
-	if val != 42 {
+	val := getEnvAsDuration("INT_ENV", 10)
+	if val != time.Duration(42)*time.Millisecond {
 		t.Errorf("Expected 42, got %d", val)
 	}
 
-	val = getEnvAsInt("MISSING_ENV", 99)
-	if val != 99 {
+	val = getEnvAsDuration("MISSING_ENV", 99)
+	if val != time.Duration(99)*time.Millisecond {
 		t.Errorf("Expected 99, got %d", val)
 	}
 
@@ -60,8 +60,8 @@ func TestGetEnvAsInt(t *testing.T) {
 		fmt.Printf("Error with set env: %v", err)
 	}
 
-	val = getEnvAsInt("INVALID_INT", 55)
-	if val != 55 {
+	val = getEnvAsDuration("INVALID_INT", 55)
+	if val != time.Duration(55)*time.Millisecond {
 		t.Errorf("Expected 55 fallback, got %d", val)
 	}
 }

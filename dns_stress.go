@@ -11,14 +11,14 @@ import (
 type Config struct {
 	dnsServer    string
 	fqdnListFile string
-	delay        int
+	delay        time.Duration
 }
 
 func newConfig() *Config {
 	return &Config{
 		dnsServer:    getEnv("DNS_SERVER", "127.0.0.53"),
 		fqdnListFile: getEnv("FQDN_LIST_PATH", "./dns_list.txt"),
-		delay:        getEnvAsInt("DELAY", 2),
+		delay:        getEnvAsDuration("DELAY", 2),
 	}
 }
 
