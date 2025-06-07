@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log/slog"
 	"math/rand"
+	"net"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -34,6 +36,28 @@ func getEnvAsDuration(key string, defaultVal int) time.Duration {
 	}
 
 	return time.Duration(defaultVal) * time.Millisecond
+}
+
+func getEnvAsIntSlice(key string, defaultVal []int) []int {
+	strSlice := strings.Split(getEnv(key, ""), ",")
+	intSlice := make([]int, 0, len(strSlice))
+
+	if len(strSlice) > 1 && strSlice[0] != "" {
+		for _, str := range strSlice {
+			num, err := strconv.Atoi(str)
+			if err != nil {
+				slog.Error("Error converting str to int", "string", str, "error", err.Error())
+				continue
+			}
+			intSlice = append(intSlice, num)
+		}
+	}
+
+	if len(intSlice) == 0 {
+		return defaultVal
+	}
+
+	return intSlice
 }
 
 // Request to DNS server
@@ -71,11 +95,11 @@ func calculateTime(c <-chan Result) string {
 		totalTime += val.Duration
 	}
 
-	avgTime := totalTime / time.Duration(cap(c)-failedAmount)
-
-	if cap(c) == 0 || avgTime == 0 {
+	if cap(c) == 0 || cap(c)-failedAmount == 0 {
 		return "No successful requests"
 	}
+
+	avgTime := totalTime / time.Duration(cap(c)-failedAmount)
 
 	return fmt.Sprintf("Requests amount: %d, Fastest response time: %s. Slowest response time: %s Average response time: %s \n", cap(c), min, max, avgTime)
 }
@@ -101,4 +125,23 @@ func stressTest(count int, delay time.Duration, dns_server string, dns_list []st
 	close(c)
 
 	return calculateTime(c)
+}
+
+func checkIPAvailability(ip string, port string) error {
+	address := net.JoinHostPort(ip, port)
+	timeout := 2 * time.Second
+
+	conn, err := net.DialTimeout("tcp", address, timeout)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		err := conn.Close()
+		if err != nil {
+			slog.Error("Error to close connection")
+		}
+	}()
+
+	return nil
 }

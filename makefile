@@ -4,6 +4,7 @@ APP=dns-stress
 APP_EXECUTABLE="./out/$(APP)"
 ALL_PACKAGES=$(shell go list ./...)
 SHELL := /bin/sh # Use bash syntax
+TAG="latest"
 
 # Optional colors to beautify output
 GREEN  := $(shell tput -Txterm setaf 2)
@@ -47,10 +48,12 @@ build: ## build the go application
 	CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w -extldflags '-static'" -o $(APP_EXECUTABLE) 
 	@echo "Build passed"
 
+dockerize: ## Create docker image
+	docker build --no-cache -t kunaev/dns-stress:$(TAG) .
+
 run: ## runs the go binary. use additional options if required.
-	make build
-	chmod +x $(APP_EXECUTABLE)
-	$(APP_EXECUTABLE)
+	make dockerize
+	docker run --rm kunaev/dns-stress:$(TAG)
 
 clean: ## cleans binary and other generated files
 	go clean

@@ -9,16 +9,18 @@ import (
 )
 
 type Config struct {
-	dnsServer    string
-	fqdnListFile string
-	delay        time.Duration
+	dnsServer      string
+	fqdnListFile   string
+	delay          time.Duration
+	requestsAmount []int
 }
 
 func newConfig() *Config {
 	return &Config{
-		dnsServer:    getEnv("DNS_SERVER", "127.0.0.53"),
-		fqdnListFile: getEnv("FQDN_LIST_PATH", "./dns_list.txt"),
-		delay:        getEnvAsDuration("DELAY", 2),
+		dnsServer:      getEnv("DNS_SERVER", "8.8.8.8"),
+		fqdnListFile:   getEnv("FQDN_LIST_PATH", "./dns_list.txt"),
+		delay:          getEnvAsDuration("DELAY", 2),
+		requestsAmount: getEnvAsIntSlice("REQUESTS_AMOUNT", []int{10}),
 	}
 }
 
@@ -31,6 +33,14 @@ func main() {
 	config := newConfig()
 
 	slog.Info("Starting up.", "Using DNS server", config.dnsServer)
+
+	err := checkIPAvailability(config.dnsServer, "53")
+	if err != nil {
+		slog.Error("DNS server is unavaliabe", "Addr", config.dnsServer)
+		os.Exit(1)
+	}
+	slog.Info("DNS server is ok")
+
 	file, err := os.Open(config.fqdnListFile)
 	if err != nil {
 		slog.Error("Cannot open file with dns list to resolve.", "Error:", err.Error())
@@ -54,7 +64,7 @@ func main() {
 
 	slog.Info("Starting stress tests...")
 
-	for _, count := range []int{10, 100, 1000, 10000} {
+	for _, count := range config.requestsAmount {
 		_, err := io.WriteString(os.Stdout, stressTest(count, config.delay, config.dnsServer, dns_list))
 		if err != nil {
 			slog.Error("Cannot write answer", "Error:", err.Error())
