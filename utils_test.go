@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 )
@@ -19,7 +20,7 @@ func TestGetEnv(t *testing.T) {
 	defer func() {
 		err := os.Unsetenv(key)
 		if err != nil {
-			fmt.Printf("Error with set env: %v", err)
+			fmt.Printf("Error with unset env: %v", err)
 		}
 	}()
 
@@ -41,17 +42,17 @@ func TestGetEnvAsInt(t *testing.T) {
 	defer func() {
 		err := os.Unsetenv("INT_ENV")
 		if err != nil {
-			fmt.Printf("Error with set env: %v", err)
+			fmt.Printf("Error with unset env: %v", err)
 		}
 	}()
 
-	val := getEnvAsInt("INT_ENV", 10)
-	if val != 42 {
+	val := getEnvAsDuration("INT_ENV", 10)
+	if val != time.Duration(42)*time.Millisecond {
 		t.Errorf("Expected 42, got %d", val)
 	}
 
-	val = getEnvAsInt("MISSING_ENV", 99)
-	if val != 99 {
+	val = getEnvAsDuration("MISSING_ENV", 99)
+	if val != time.Duration(99)*time.Millisecond {
 		t.Errorf("Expected 99, got %d", val)
 	}
 
@@ -60,9 +61,75 @@ func TestGetEnvAsInt(t *testing.T) {
 		fmt.Printf("Error with set env: %v", err)
 	}
 
-	val = getEnvAsInt("INVALID_INT", 55)
-	if val != 55 {
+	val = getEnvAsDuration("INVALID_INT", 55)
+	if val != time.Duration(55)*time.Millisecond {
 		t.Errorf("Expected 55 fallback, got %d", val)
+	}
+}
+
+func TestGetEnvAsIntSlice(t *testing.T) {
+	tests := []struct {
+		name       string
+		envKey     string
+		envValue   string
+		defaultVal []int
+		expected   []int
+	}{
+		{
+			name:       "Valid integers",
+			envKey:     "INT_SLICE_TEST_1",
+			envValue:   "1,2,3,4",
+			defaultVal: []int{9, 9, 9},
+			expected:   []int{1, 2, 3, 4},
+		},
+		{
+			name:       "Mixed valid and invalid integers",
+			envKey:     "INT_SLICE_TEST_2",
+			envValue:   "10,abc,20,xyz",
+			defaultVal: []int{5, 5},
+			expected:   []int{10, 20},
+		},
+		{
+			name:       "All invalid integers",
+			envKey:     "INT_SLICE_TEST_3",
+			envValue:   "abc,def,ghi",
+			defaultVal: []int{100, 200},
+			expected:   []int{100, 200},
+		},
+		{
+			name:       "Empty environment variable",
+			envKey:     "INT_SLICE_TEST_4",
+			envValue:   "",
+			defaultVal: []int{7, 8, 9},
+			expected:   []int{7, 8, 9},
+		},
+		{
+			name:       "Whitespace and extra commas",
+			envKey:     "INT_SLICE_TEST_5",
+			envValue:   "1,,2,   ,3",
+			defaultVal: []int{0},
+			expected:   []int{1, 2, 3},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := os.Setenv(tt.envKey, tt.envValue)
+			if err != nil {
+				fmt.Printf("Error with set env: %v", err)
+			}
+
+			result := getEnvAsIntSlice(tt.envKey, tt.defaultVal)
+
+			if !reflect.DeepEqual(result, tt.expected) {
+				t.Errorf("got %v, expected %v", result, tt.expected)
+			}
+
+			err = os.Unsetenv(tt.envKey)
+			if err != nil {
+				fmt.Printf("Error with unset env: %v", err)
+			}
+		})
 	}
 }
 
